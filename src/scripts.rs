@@ -38,10 +38,12 @@ pub fn property_access_proxy(property: String) -> String {
     get: function() {{
       const error = new Error();
       const location = getLocationFromStack(error.stack);
-      console.warn(`[GET] Object['${{targetProperty}}'] at ${{location}}`);
       if (originalGet) {{
-        return originalGet.call(this);
+        const value = originalGet.call(this);
+        console.warn(`[GET] Object['${{targetProperty}}'] = ${{value}} at ${{location}}`);
+        return value;
       }}
+      console.warn(`[GET] Object['${{targetProperty}}'] = ${{privateValue}} at ${{location}}`);
       return privateValue;
     }},
     set: function(value) {{
