@@ -80,20 +80,12 @@ async fn visit(
     tokio::time::sleep(Duration::from_secs(timeout_duration)).await;
 
     let final_messages = messages.lock().await.clone();
-    let writes: Vec<&String> = final_messages
+    let messages: Vec<&String> = final_messages
         .iter()
-        .filter(|msg| msg.starts_with("\"[SET]"))
-        .collect();
-    let reads: Vec<&String> = final_messages
-        .iter()
-        .filter(|msg| msg.starts_with("\"[GET]"))
+        .filter(|msg| msg.starts_with("\"[SET]") || msg.starts_with("\"[GET]"))
         .collect();
 
-    for w in writes {
-        info!("{}", w);
-    }
-
-    for r in reads {
+    for r in messages {
         info!("{}", r);
     }
 
