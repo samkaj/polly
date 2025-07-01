@@ -22,19 +22,48 @@ struct Cli {
 
     /// URL(s) to check
     urls: Vec<String>,
+
+    /// Prototype pollution property
+    #[arg(long = "pollute", default_value_t = false)]
+    pollute: bool,
+
+    /// Print the script used for monitoring gets/sets to the provided property
+    /// and exit
+    #[arg(long = "script")]
+    script: bool,
 }
 
 #[tokio::main]
 async fn main() {
     colog::init();
     let cli = Cli::parse();
-
     let urls = cli.urls;
     let prop = cli.property;
     let timeout = cli.timeout;
+    let pollute = cli.pollute;
+
+    let script = cli.script;
+    if script {
+        println!("{}", property_access_proxy(prop));
+        return;
+    }
+
     for url in urls {
+        let mut to_visit = url.clone();
         info!("{}", url);
-        if let Err(err) = visit(url, prop.clone(), timeout).await {
+        if pollute {
+            if let Some(idx) = url.find("?") {
+                to_visit = format!(
+                    "{}?__proto__[{}]=polluted",
+                    url.clone().split_off(idx),
+                    prop
+                );
+            } else {
+                to_visit = format!("{}?__proto__[{}]=polluted", url, prop);
+            }
+        }
+
+        if let Err(err) = visit(to_visit, prop.clone(), timeout).await {
             error!("{}", err);
         }
     }

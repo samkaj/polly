@@ -40,16 +40,17 @@ pub fn property_access_proxy(property: String) -> String {
       const location = getLocationFromStack(error.stack);
       if (originalGet) {{
         const value = originalGet.call(this);
-        console.warn(`[GET] Object['${{targetProperty}}'] = ${{value}} at ${{location}}`);
+        console.warn(`[GET] ${{!this.hasOwnProperty(targetProperty) ? "__proto__" : "obj" }}['${{targetProperty}}'] = ${{value}} at ${{location}}`);
         return value;
       }}
-      console.warn(`[GET] Object['${{targetProperty}}'] = ${{privateValue}} at ${{location}}`);
+      console.warn(`[GET] ${{!this.hasOwnProperty(targetProperty) ? "__proto__" : "obj" }}['${{targetProperty}}'] = ${{privateValue}} at ${{location}}`);
       return privateValue;
     }},
     set: function(value) {{
       const error = new Error();
       const location = getLocationFromStack(error.stack);
-      console.warn(`[SET] Object['${{targetProperty}}'] = ${{value}} at ${{location}}`);
+      const msg = `[SET] ${{this.__proto__ == null ? "__proto__" : "obj" }}['${{targetProperty}}'] = ${{value}} at ${{location}}`;
+      console.warn(msg);
       if (originalSet) {{
         originalSet.call(this, value);
       }} else {{
