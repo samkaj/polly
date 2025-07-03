@@ -43,6 +43,7 @@ def main():
     for access in property_accesses:
         print(access)
 
+
 def clean_url(url: str) -> str:
     """Remove query/fragment params from a URL."""
     clean_url = url
