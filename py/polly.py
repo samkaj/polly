@@ -36,12 +36,12 @@ def main():
     onload_scripts = f"{inject_params(get_params(url, prop))}\n{onload_scripts}"
 
     driver = get_driver(onload_scripts)
-    property_accesses = monitor(clean_url(url), driver)
+    url = clean_url(url)
+    property_accesses = monitor(url, driver)
 
-    if len(property_accesses) > 0:
-        print("Results:")
+    print(url)
     for access in property_accesses:
-        print(access)
+        print(f"  {access}")
 
 
 def clean_url(url: str) -> str:
@@ -56,7 +56,6 @@ def clean_url(url: str) -> str:
 
 def monitor(url: str, driver) -> list[str]:
     """Visit the webpage on the given URL and return relevant logs."""
-    print(f"visiting {url}")
     driver.get(url)
 
     time.sleep(2)
