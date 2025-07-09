@@ -10,7 +10,7 @@ from selenium.webdriver import Chrome, ChromeOptions
 def main():
     parser = argparse.ArgumentParser(
         prog="polly",
-        description="Monitor property accesses on websites using JavaScript",
+        description="polly monitors property accesses on websites using JavaScript and selenium",
     )
     parser.add_argument(
         "-p",
@@ -28,6 +28,12 @@ def main():
         eprint(f"polly: failed to infer a property to monitor from '{args.url}'")
         exit(1)
 
+    accesses = visit_site(url, prop)
+    for access in accesses:
+        print(access)
+
+
+def visit_site(url, prop) -> list[str]:
     onload_scripts = proxy_script(prop)
     if onload_scripts is None:
         eprint(f"polly: failed to create proxy script for property '{prop}'")
@@ -37,11 +43,9 @@ def main():
 
     driver = get_driver(onload_scripts)
     url = clean_url(url)
-    property_accesses = monitor(url, driver)
+    logs = monitor(url, driver)
 
-    print(url)
-    for access in property_accesses:
-        print(f"  {access}")
+    return logs
 
 
 def clean_url(url: str) -> str:
@@ -56,12 +60,13 @@ def clean_url(url: str) -> str:
 
 def monitor(url: str, driver) -> list[str]:
     """Visit the webpage on the given URL and return relevant logs."""
-    driver.get(url)
-
-    time.sleep(2)
-
-    logs = driver.execute_script("return logs")
-    driver.quit()
+    try:
+        driver.get(url)
+        time.sleep(2)
+        logs = driver.execute_script("return logs")
+    finally:
+        driver.close()
+        driver.quit()
 
     return logs
 
