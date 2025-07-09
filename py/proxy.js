@@ -37,25 +37,30 @@ const logs = [];
     Object.defineProperty(Object.prototype, targetProperty, {
         get: function() {
             const error = new Error();
-            const location = getLocationFromStack(error.stack);
+            const loc = getLocationFromStack(error.stack);
             if (originalGet) {
                 const value = originalGet.call(this);
-                let msg = `[GET] ${!this.hasOwnProperty(targetProperty) ? "__proto__" : "obj"}['${targetProperty}'] = ${value} at ${location}`;
+                let msg = `[GET] ${!this.hasOwnProperty(targetProperty) ? "__proto__" : "obj"}['${targetProperty}'] = ${value} at ${loc}`;
                 console.log(msg);
-                logs.push(msg);
                 return value;
             }
-            let msg = `[GET] ${!this.hasOwnProperty(targetProperty) ? "__proto__" : "obj"}['${targetProperty}'] = ${privateValue} at ${location}`;
+            let msg = `[GET] ${!this.hasOwnProperty(targetProperty) ? "__proto__" : "obj"}['${targetProperty}'] = ${privateValue} at ${loc}`;
             console.log(msg);
-            logs.push(msg);
+            logs.push({
+                "location": loc,
+                "payload": `${!this.hasOwnProperty(targetProperty) ? "__proto__" : "obj"}['${targetProperty}']`
+            });
             return privateValue;
         },
         set: function(value) {
             const error = new Error();
-            const location = getLocationFromStack(error.stack);
-            const msg = `[SET] ${this.__proto__ == null ? "__proto__" : "obj"}['${targetProperty}'] = ${value} at ${location}`;
+            const loc = getLocationFromStack(error.stack);
+            const msg = `[SET] ${this.__proto__ == null ? "__proto__" : "obj"}['${targetProperty}'] = ${value} at ${loc}`;
+            logs.push({
+                "location": loc,
+                "payload": `${this.__proto__ == null ? "__proto__" : "obj"}['${targetProperty}']`
+            });
             console.log(msg);
-            logs.push(msg);
             if (originalSet) {
                 originalSet.call(this, value);
             } else {
