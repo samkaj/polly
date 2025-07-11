@@ -23,6 +23,12 @@ def main():
     args = parser.parse_args()
     url = args.url
 
+    if "?" not in url:
+        url = url + "?__proto__[1337]=bar"
+
+    if "http" not in url:
+        url = "http://" + url
+
     prop = args.prop if args.prop is not None else infer_property(url)
     if prop is None:
         eprint(f"polly: failed to infer a property to monitor from '{args.url}'")
