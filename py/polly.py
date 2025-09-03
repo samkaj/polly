@@ -89,6 +89,9 @@ def get_driver(onload_scripts):
     driver.execute_cdp_cmd(
         "Page.addScriptToEvaluateOnNewDocument", {"source": onload_scripts}
     )
+
+    driver.set_page_load_timeout(10)
+
     return driver
 
 
