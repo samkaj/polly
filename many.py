@@ -3,31 +3,26 @@
 from time import time
 from polly import visit_site
 import sys
+import json
 
 
 def main():
-    log_file_name = "polly-" + str(time()).split(".")[0] + ".log"
-    log_file = open(log_file_name, "a")
-    try:
-        args = sys.argv
-        assert len(args) == 2, "expected only one argument"
-        path = args[1]
-        urls = []
-        with open(path, "r") as f:
-            urls = [line.strip() for line in f.readlines()]
+    args = sys.argv
+    assert len(args) == 2, "expected only one argument"
+    path = args[1]
+    urls = []
+    with open(path, "r") as f:
+        urls = [line.strip() for line in f.readlines()]
 
-        results = {}
-        for url in urls:
-            print(f"visiting {url}")
-            logs = visit_site(url, "1337")
-            print(logs)
-            results[url] = logs
-            log_file.write(f"{'-'*len(url)}\n{url}\n{logs}\n")
-            print(f"{'-'*len(url)}")
-    except:
-        log_file.close()
-    finally:
-        log_file.close()
+    results = {}
+    for url in urls:
+        logs = visit_site(url, "123")
+        results[url] = logs
+
+    log_file_name = "polly-" + str(time()).split(".")[0] + ".json"
+    with open(log_file_name, "w") as log_file:
+        print(results)
+        log_file.write(json.dumps(results, indent=2))
 
 
 if __name__ == "__main__":
