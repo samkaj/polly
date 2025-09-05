@@ -5,6 +5,7 @@ import argparse
 import time
 
 from selenium.webdriver import Chrome, ChromeOptions
+import json
 
 
 def main():
@@ -36,7 +37,7 @@ def main():
 
     accesses = visit_site(url, prop)
     for access in accesses:
-        print(access)
+        print(json.dumps(access))
 
 
 def visit_site(url, prop) -> list[str]:
