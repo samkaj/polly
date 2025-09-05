@@ -71,6 +71,9 @@ def monitor(url: str, driver) -> list[str]:
         driver.get(url)
         time.sleep(2)
         logs = driver.execute_script("return logs")
+    except:
+        eprint(f"an error occured when visiting {url}")
+        logs = []
     finally:
         driver.close()
         driver.quit()
