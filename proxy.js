@@ -1,14 +1,5 @@
 const logs = [];
 
-const polly = (message) => {
-	logs.push({
-		method: "alert",
-		payload: message,
-	});
-
-	console.log("fired");
-};
-
 // Helper function to extract file, line, and column from stack trace
 const getLocationFromStack = (stack) => {
 	const lines = stack.split('\n');
