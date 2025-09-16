@@ -4,6 +4,7 @@ from time import time
 from polly import visit_site
 import sys
 import json
+from tqdm import tqdm
 
 
 def main():
@@ -15,12 +16,11 @@ def main():
         urls = [line.strip() for line in f.readlines()]
 
     results = {}
-    for url in urls:
+    for url in tqdm(urls):
         try:
             logs = visit_site(url, "1337")
             results[url] = logs
-        except Exception as e:
-            print(f"encountered an error:\n{e}")
+        except:
             continue
 
     log_file_name = "polly-" + str(time()).split(".")[0] + ".json"
