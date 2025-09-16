@@ -16,8 +16,12 @@ def main():
 
     results = {}
     for url in urls:
-        logs = visit_site(url, "123")
-        results[url] = logs
+        try:
+            logs = visit_site(url, "1337")
+            results[url] = logs
+        except Exception as e:
+            print(f"encountered an error:\n{e}")
+            continue
 
     log_file_name = "polly-" + str(time()).split(".")[0] + ".json"
     with open(log_file_name, "w") as log_file:
