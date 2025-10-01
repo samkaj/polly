@@ -2,11 +2,9 @@ const logs = [];
 
 
 function smile(x) {
-	//alert("SMILE!! ", x);
-	//console.log("MSILE: ", x);
 	const error = new Error();
 	const loc = getLocationFromStack(error.stack);
-			
+
 	logs.push({
 		"location": loc,
 		"payload": x,
@@ -62,7 +60,7 @@ const getLocationFromStack = (stack) => {
 		get: function() {
 			const err = new Error();
 			const loc = getLocationFromStack(err.stack);
-			
+
 			let msg = `[GET] ${!this.hasOwnProperty(targetProperty) ? "__proto__" : "obj"}['${targetProperty}'] = ${privateValue} at ${loc} (privproto: ${privateProtoValue})`;
 			console.log(msg);
 			logs.push({
@@ -70,9 +68,9 @@ const getLocationFromStack = (stack) => {
 				"payload": `${!this.hasOwnProperty(targetProperty) ? "__proto__" : "obj"}['${targetProperty}']`,
 				"method": "get",
 			});
-			if( !this.hasOwnProperty(targetProperty) ) {
+			if (!this.hasOwnProperty(targetProperty)) {
 				return privateProtoValue;
-			} 
+			}
 			return privateValue;
 		},
 		set: function(value) {
@@ -85,11 +83,11 @@ const getLocationFromStack = (stack) => {
 				"method": "set",
 			});
 			console.log(msg);
-			if( this.__proto__ == null ) {
+			if (this.__proto__ == null) {
 				privateProtoValue = value;
 			} else {
 				privateValue = value;
-		    }
+			}
 		},
 		configurable: true,
 		enumerable: false,

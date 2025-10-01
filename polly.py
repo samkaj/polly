@@ -23,7 +23,7 @@ def main():
     parser.add_argument(
         "-w",
         help="""include the query params in the request when visiting the page""",
-        action="store_true"
+        action="store_true",
     )
     parser.add_argument("url", help="the website to visit")
     args = parser.parse_args()
@@ -84,7 +84,7 @@ def monitor(url: str, driver) -> list[str]:
         eprint(f"an error occured when visiting {url}")
         logs = []
     finally:
-        
+
         # input("Good?")
         driver.close()
         driver.quit()
@@ -107,14 +107,13 @@ def get_driver(onload_scripts):
 
     driver.set_page_load_timeout(30)
 
-
     return driver
 
 
 def infer_property(url: str) -> str | None:
     """Infer what property to monitor based on the given URL. This is not
     exhaustive, but it provides a nice utility when using the CLI.
-    
+
     Examples:
     - `?__proto__[foo]=bar` -> foo
     - `?constructor.prototype.foo=bar` -> foo
