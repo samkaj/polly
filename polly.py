@@ -75,6 +75,8 @@ def monitor(url: str, driver) -> list[str]:
         eprint(f"an error occured when visiting {url}")
         logs = []
     finally:
+        
+        # input("Good?")
         driver.close()
         driver.quit()
 
@@ -88,13 +90,14 @@ def get_driver(onload_scripts):
     opts.add_argument("--disable-xss-auditor")
     opts.add_argument("--disable-search-engine-choice-screen")
     opts.add_argument("--ignore-certificate-errors")
-    opts.add_argument("--headless")
+    # opts.add_argument("--headless")
     driver = Chrome(options=opts)
     driver.execute_cdp_cmd(
         "Page.addScriptToEvaluateOnNewDocument", {"source": onload_scripts}
     )
 
     driver.set_page_load_timeout(10)
+
 
     return driver
 
