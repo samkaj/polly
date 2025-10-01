@@ -40,7 +40,6 @@ def main():
         eprint(f"polly: failed to infer a property to monitor from '{args.url}'")
         exit(1)
 
-    skip_waf_bypass = args.w if args.w is not None else True
     accesses = visit_site(url, prop, args.w)
     for access in accesses:
         print(json.dumps(access))
