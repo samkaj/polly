@@ -20,6 +20,11 @@ def main():
                         omitted, polly tries to infer it from the url
                         query/hash params""",
     )
+    parser.add_argument(
+        "-w",
+        help="""include the query params in the request when visiting the page""",
+        action="store_true"
+    )
     parser.add_argument("url", help="the website to visit")
     args = parser.parse_args()
     url = args.url
@@ -35,21 +40,25 @@ def main():
         eprint(f"polly: failed to infer a property to monitor from '{args.url}'")
         exit(1)
 
-    accesses = visit_site(url, prop)
+    accesses = visit_site(url, prop, args.w)
     for access in accesses:
         print(json.dumps(access))
 
 
-def visit_site(url, prop) -> list[str]:
+def visit_site(url, prop, skip_waf_bypass) -> list[str]:
     onload_scripts = proxy_script(prop)
     if onload_scripts is None:
         eprint(f"polly: failed to create proxy script for property '{prop}'")
         exit(1)
 
-    onload_scripts = f"{inject_params(get_params(url, prop))}\n{onload_scripts}"
+    if not skip_waf_bypass:
+        onload_scripts = f"{inject_params(get_params(url, prop))}\n{onload_scripts}"
 
     driver = get_driver(onload_scripts)
-    url = clean_url(url)
+
+    if not skip_waf_bypass:
+        url = clean_url(url)
+
     logs = monitor(url, driver)
 
     return logs
@@ -96,7 +105,7 @@ def get_driver(onload_scripts):
         "Page.addScriptToEvaluateOnNewDocument", {"source": onload_scripts}
     )
 
-    driver.set_page_load_timeout(10)
+    driver.set_page_load_timeout(30)
 
 
     return driver
@@ -104,7 +113,12 @@ def get_driver(onload_scripts):
 
 def infer_property(url: str) -> str | None:
     """Infer what property to monitor based on the given URL. This is not
-    exhaustive, but it provides a nice utility when using the CLI."""
+    exhaustive, but it provides a nice utility when using the CLI.
+    
+    Examples:
+    - `?__proto__[foo]=bar` -> foo
+    - `?constructor.prototype.foo=bar` -> foo
+    """
     if "#" not in url and "?" not in url:
         return None
 
@@ -152,10 +166,11 @@ def get_params(url, prop) -> str:
     the standard prototype pollution query is added."""
     params = url.split("?")[1]
     if params == url:
+        # Query is not used, the params come from the fragment part of the URL
         params = url.split("#")[1]
 
     if params == url:
-        # Falling back to standard payload
+        # No query or fragment exists; falling back to standard payload
         params = f"?__proto__[{prop}]=polluted"
 
     return params
