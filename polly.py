@@ -23,6 +23,11 @@ def main():
     parser.add_argument(
         "-w",
         help="""include the query params in the request when visiting the page""",
+        action="store_false",
+    )
+    parser.add_argument(
+        "--head",
+        help="""run browser with head""",
         action="store_true",
     )
     parser.add_argument("url", help="the website to visit")
@@ -40,12 +45,12 @@ def main():
         eprint(f"polly: failed to infer a property to monitor from '{args.url}'")
         exit(1)
 
-    accesses = visit_site(url, prop, args.w)
+    accesses = visit_site(url, prop, args.w, not args.head)
     for access in accesses:
         print(json.dumps(access))
 
 
-def visit_site(url, prop, skip_waf_bypass) -> list[str]:
+def visit_site(url, prop, skip_waf_bypass, head) -> list[str]:
     onload_scripts = proxy_script(prop)
     if onload_scripts is None:
         eprint(f"polly: failed to create proxy script for property '{prop}'")
@@ -54,7 +59,7 @@ def visit_site(url, prop, skip_waf_bypass) -> list[str]:
     if not skip_waf_bypass:
         onload_scripts = f"{inject_params(get_params(url, prop))}\n{onload_scripts}"
 
-    driver = get_driver(onload_scripts)
+    driver = get_driver(onload_scripts, head)
 
     if not skip_waf_bypass:
         url = clean_url(url)
@@ -92,14 +97,15 @@ def monitor(url: str, driver) -> list[str]:
     return logs
 
 
-def get_driver(onload_scripts):
+def get_driver(onload_scripts, headless):
     """Build a standard chrome driver instance for web security analysis."""
     opts = ChromeOptions()
     opts.add_argument("--disable-web-security")
     opts.add_argument("--disable-xss-auditor")
     opts.add_argument("--disable-search-engine-choice-screen")
     opts.add_argument("--ignore-certificate-errors")
-    # opts.add_argument("--headless")
+    if headless:
+        opts.add_argument("--headless")
     driver = Chrome(options=opts)
     driver.execute_cdp_cmd(
         "Page.addScriptToEvaluateOnNewDocument", {"source": onload_scripts}
