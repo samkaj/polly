@@ -29,6 +29,7 @@ const getLocationFromStack = (stack) => {
 			return `${fileName}:${lineNumber}:${columnNumber}`;
 		}
 	}
+
 	return 'Unknown location';
 };
 
@@ -39,13 +40,9 @@ const getLocationFromStack = (stack) => {
 	// Todo array, etc? 
 
 	const originalDescriptor = Object.getOwnPropertyDescriptor(Object.prototype, targetProperty);
-
-	const originalGet = originalDescriptor ? originalDescriptor.get : undefined;
-	const originalSet = originalDescriptor ? originalDescriptor.set : undefined;
 	const originalValue = originalDescriptor ? originalDescriptor.value : undefined;
 
 	if (originalDescriptor && 'value' in originalDescriptor) {
-		console.log("HERE?!");
 		privateValue = originalValue;
 	}
 
@@ -55,27 +52,27 @@ const getLocationFromStack = (stack) => {
 		get: function() {
 			const err = new Error();
 			const loc = getLocationFromStack(err.stack);
+			const value = this.hasOwnProperty(targetProperty) ? privateValue : privateProtoValue;
 
-			let msg = `[GET] ${!this.hasOwnProperty(targetProperty) ? "__proto__" : "obj"}['${targetProperty}'] = ${privateValue} at ${loc} (privproto: ${privateProtoValue})`;
+			let msg = `[GET] ${!this.hasOwnProperty(targetProperty) ? "__proto__" : "obj"}['${targetProperty}'] = ${privateValue} at ${loc}`;
 			console.log(msg);
 			logs.push({
 				"location": loc,
 				"payload": `${!this.hasOwnProperty(targetProperty) ? "__proto__" : "obj"}['${targetProperty}']`,
 				"method": "get",
+				"value": value,
 			});
-			if (!this.hasOwnProperty(targetProperty)) {
-				return privateProtoValue;
-			}
-			return privateValue;
+			return value;
 		},
 		set: function(value) {
 			const err = new Error();
 			const loc = getLocationFromStack(err.stack);
-			const msg = `[SET] ${this.__proto__ == null ? "__proto__" : "obj"}['${targetProperty}'] = ${value} at ${loc} (privproto: ${privateProtoValue})`;
+			const msg = `[SET] ${this.__proto__ == null ? "__proto__" : "obj"}['${targetProperty}'] = ${value} at ${loc}`;
 			logs.push({
 				"location": loc,
 				"payload": `${this.__proto__ == null ? "__proto__" : "obj"}['${targetProperty}']`,
 				"method": "set",
+				"value": value,
 			});
 			console.log(msg);
 			if (this.__proto__ == null) {
@@ -88,5 +85,3 @@ const getLocationFromStack = (stack) => {
 		enumerable: false,
 	});
 })();
-
-
