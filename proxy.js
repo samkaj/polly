@@ -44,11 +44,6 @@ const getLocationFromStack = (stack) => {
 	const originalSet = originalDescriptor ? originalDescriptor.set : undefined;
 	const originalValue = originalDescriptor ? originalDescriptor.value : undefined;
 
-	console.log("CHECK: ")
-	console.log(originalGet);
-	console.log(originalSet);
-	console.log(originalValue);
-
 	if (originalDescriptor && 'value' in originalDescriptor) {
 		console.log("HERE?!");
 		privateValue = originalValue;
