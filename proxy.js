@@ -1,7 +1,7 @@
 const logs = [];
 
-
-function smile(x) {
+const smile = (x) => {
+	console.log("smile: ", x);
 	const error = new Error();
 	const loc = getLocationFromStack(error.stack);
 
@@ -21,17 +21,28 @@ const getLocationFromStack = (stack) => {
 		// Regex to match patterns like "at functionName (file:line:column)" or "at file:line:column"
 		const match = callerLine.match(/(?:at\s+.*?\s+\()?(.*?):(\d+):(\d+)\)?$/);
 		if (match && match.length >= 4) {
+			const functionName = match[0].split("at")[1].split("(")[0].trim();
 			const filePath = match[1];
 			const lineNumber = match[2];
 			const columnNumber = match[3];
 			// Clean up file path if it's a browser URL (e.g., 'http://localhost:8080/script.js')
 			const fileName = filePath.substring(filePath.lastIndexOf('/') + 1) || filePath;
-			return `${fileName}:${lineNumber}:${columnNumber}`;
+			return `${fileName}:${lineNumber}:${columnNumber} in ${functionName}`;
 		}
 	}
-
 	return 'Unknown location';
 };
+
+// This is not at all guaranteed to work for everything. It assumes we can
+// access the function from the current context, which is not always the case.
+const getFunctionBodyFromStack = (stack) => {
+	try {
+		const res = stack.split(" at ");
+		return { body: eval(res[2].split(" ")[0]).toString(), err: null }
+	} catch (err) {
+		return { body: null, err: err };
+	}
+}
 
 (() => {
 	const targetProperty = 'PLACEHOLDER';
@@ -48,34 +59,36 @@ const getLocationFromStack = (stack) => {
 
 
 	Object.defineProperty(Object.prototype, targetProperty, {
-
 		get: function() {
 			const err = new Error();
 			const loc = getLocationFromStack(err.stack);
-			const value = this.hasOwnProperty(targetProperty) ? privateValue : privateProtoValue;
+			const isProto = this.__proto__ == null;
 
-			let msg = `[GET] ${!this.hasOwnProperty(targetProperty) ? "__proto__" : "obj"}['${targetProperty}'] = ${privateValue} at ${loc}`;
+			let msg = `[GET] ${isProto ? "__proto__" : "obj"}['${targetProperty}'] = ${privateValue} at ${loc}`;
 			console.log(msg);
 			logs.push({
 				"location": loc,
-				"payload": `${!this.hasOwnProperty(targetProperty) ? "__proto__" : "obj"}['${targetProperty}']`,
+				"payload": `${isProto ? "__proto__" : "obj"}['${targetProperty}']`,
 				"method": "get",
-				"value": value,
 			});
-			return value;
+
+			return isProto ? privateProtoValue : privateValue;
 		},
 		set: function(value) {
 			const err = new Error();
 			const loc = getLocationFromStack(err.stack);
-			const msg = `[SET] ${this.__proto__ == null ? "__proto__" : "obj"}['${targetProperty}'] = ${value} at ${loc}`;
+			const func = getFunctionBodyFromStack(err.stack);
+			const isProto = this.__proto__ == null;
+			const msg = `[SET] ${isProto ? "__proto__" : "obj"}['${targetProperty}'] = ${value} at ${loc})`;
+
 			logs.push({
 				"location": loc,
 				"payload": `${this.__proto__ == null ? "__proto__" : "obj"}['${targetProperty}']`,
 				"method": "set",
-				"value": value,
+				"function": func.err ? "N/A" : func.body,
 			});
 			console.log(msg);
-			if (this.__proto__ == null) {
+			if (isProto) {
 				privateProtoValue = value;
 			} else {
 				privateValue = value;

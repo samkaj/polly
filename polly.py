@@ -50,7 +50,7 @@ def main():
         print(json.dumps(access))
 
 
-def visit_site(url, prop, skip_waf_bypass, head) -> list[str]:
+def visit_site(url, prop, skip_waf_bypass, head) -> list[dict]:
     onload_scripts = proxy_script(prop)
     if onload_scripts is None:
         eprint(f"polly: failed to create proxy script for property '{prop}'")
@@ -64,9 +64,8 @@ def visit_site(url, prop, skip_waf_bypass, head) -> list[str]:
     if not skip_waf_bypass:
         url = clean_url(url)
 
-    logs = monitor(url, driver)
+    return monitor(url, driver)
 
-    return logs
 
 
 def clean_url(url: str) -> str:
@@ -79,18 +78,18 @@ def clean_url(url: str) -> str:
     return clean_url
 
 
-def monitor(url: str, driver) -> list[str]:
+def monitor(url: str, driver) -> list[dict]:
     """Visit the webpage on the given URL and return relevant logs."""
     try:
         driver.get(url)
-        time.sleep(2)
-        logs = driver.execute_script("return logs")
+        time.sleep(1)
+        # input("Good?")
+        logs: list[dict] = driver.execute_script("return logs")
     except:
         eprint(f"an error occured when visiting {url}")
         logs = []
     finally:
 
-        # input("Good?")
         driver.close()
         driver.quit()
 
